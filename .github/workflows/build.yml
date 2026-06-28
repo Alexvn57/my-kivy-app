@@ -27,7 +27,7 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev cmake libffi-dev libssl-dev libxml2-dev libxslt1-dev ccache
-          pip install --upgrade buildozer cython setwheel setuptools wheel
+          pip install --upgrade buildozer cython setuptools wheel
       
       - name: Setup Android SDK (fix AIDL issue)
         run: |
