@@ -48,7 +48,9 @@ jobs:
             libtool \
             pkg-config \
             zlib1g-dev \
-            libncurses-dev \
+            libncurses5-dev \
+            libncursesw5-dev \
+            libtinfo5 \
             cmake \
             libffi-dev \
             libssl-dev \
@@ -57,6 +59,10 @@ jobs:
             ccache
           
           pip install --upgrade buildozer cython virtualenv setuptools
+
+      - name: Accept Android SDK licenses
+        run: |
+          yes | ~/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager --licenses || true
 
       - name: Build APK with Buildozer
         run: |
