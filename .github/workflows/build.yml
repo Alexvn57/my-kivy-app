@@ -1,6 +1,5 @@
 name: Build Android APK
 
-# متى يشتغل
 on:
   push:
     branches: [ "main" ]
@@ -13,17 +12,14 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      # 1. تحميل الكود من المستودع
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. تجهيز Python
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.9'
 
-      # 3. Cache للتسريع (المرة الثانية تكون أسرع)
       - name: Cache Buildozer
         uses: actions/cache@v3
         with:
@@ -32,7 +28,6 @@ jobs:
             ~/.gradle
           key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
 
-      # 4. تنظيف المساحة
       - name: Free disk space
         run: |
           sudo rm -rf /usr/share/dotnet
@@ -40,7 +35,6 @@ jobs:
           sudo rm -rf /usr/local/share/boost
           df -h
 
-      # 5. تثبيت الحزم المطلوبة
       - name: Install dependencies
         run: |
           sudo apt update
@@ -64,15 +58,12 @@ jobs:
             libxslt1-dev \
             ccache
           
-          # تثبيت buildozer
           pip install --upgrade buildozer cython virtualenv
 
-      # 6. بناء APK
       - name: Build APK with Buildozer
         run: |
           buildozer android debug
 
-      # 7. رفع APK كـ Artifact
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
