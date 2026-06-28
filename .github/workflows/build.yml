@@ -48,9 +48,7 @@ jobs:
             libtool \
             pkg-config \
             zlib1g-dev \
-            libncurses5-dev \
-            libncursesw5-dev \
-            libtinfo5 \
+            libncurses-dev \
             cmake \
             libffi-dev \
             libssl-dev \
@@ -58,7 +56,7 @@ jobs:
             libxslt1-dev \
             ccache
           
-          pip install --upgrade buildozer cython virtualenv
+          pip install --upgrade buildozer cython virtualenv setuptools
 
       - name: Build APK with Buildozer
         run: |
