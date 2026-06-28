@@ -29,23 +29,40 @@ jobs:
           sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev cmake libffi-dev libssl-dev libxml2-dev libxslt1-dev ccache
           pip install --upgrade buildozer cython setuptools wheel
       
-      - name: Setup Android SDK (fix AIDL issue)
+      - name: Pre-seed Android SDK before buildozer
         run: |
-          export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
-          if [ ! -d "$ANDROID_HOME" ]; then
-            mkdir -p $ANDROID_HOME
-            cd $ANDROID_HOME
-            wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
-            unzip -q commandlinetools-linux-11076708_latest.zip
-            mkdir -p latest
-            mv cmdline-tools/* latest/
-            mv latest cmdline-tools/
-            export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin
-            yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME "platforms;android-34"
-            yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME "build-tools;34.0.0"
-            yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME "ndk;25.2.9519653"
-          fi
-          echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
+          mkdir -p ~/.buildozer/android/platform/android-sdk
+          cd ~/.buildozer/android/platform/android-sdk
+          
+          # Download command line tools
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip -q commandlinetools-linux-11076708_latest.zip
+          
+          # Buildozer expects sdkmanager at: tools/bin/sdkmanager
+          # So we need to arrange cmdline-tools properly
+          mkdir -p tools/bin
+          # Create wrapper script that calls the real sdkmanager
+          cat > /tmp/sdkmanager-wrapper.sh << 'EOF'
+          #!/bin/bash
+          SDK_ROOT="$HOME/.buildozer/android/platform/android-sdk"
+          "$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$SDK_ROOT" "$@"
+          EOF
+          chmod +x /tmp/sdkmanager-wrapper.sh
+          cp /tmp/sdkmanager-wrapper.sh tools/bin/sdkmanager
+          
+          # Also install the real sdkmanager at the expected path structure
+          mkdir -p latest
+          mv cmdline-tools/* latest/
+          mv latest cmdline-tools/
+          
+          # Now run sdkmanager to install platforms and build-tools
+          chmod +x cmdline-tools/latest/bin/sdkmanager
+          
+          yes | cmdline-tools/latest/bin/sdkmanager --sdk_root=$PWD "platforms;android-34"
+          yes | cmdline-tools/latest/bin/sdkmanager --sdk_root=$PWD "build-tools;34.0.0"
+          yes | cmdline-tools/latest/bin/sdkmanager --sdk_root=$PWD "ndk;25.2.9519653"
+          
+          echo "Android SDK setup complete"
       
       - name: Build APK
         run: buildozer android debug
